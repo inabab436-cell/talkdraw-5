@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Volume2 } from "lucide-react";
 import { toast } from "sonner";
@@ -6,6 +6,7 @@ import { reactToTouch } from "@/lib/touch.functions";
 import { speakLine } from "@/lib/voice.functions";
 import { useCharacterTouch } from "@/lib/touch/useCharacterTouch";
 import { useTouchQueue } from "@/lib/touch/useTouchQueue";
+import { useCharacterLife } from "@/lib/character/useCharacterLife";
 import type {
   AiTouchDecision,
   CharacterState,
