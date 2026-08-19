@@ -103,9 +103,9 @@
     color-mix(in oklab, var(--surface) 92%, transparent),
     color-mix(in oklab, var(--background) 96%, transparent)
   );
-  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 25%, transparent),
-    0 24px 60px -24px color-mix(in oklab, var(--primary) 45%, transparent);
-  --shadow-panel: 0 30px 80px -40px oklch(0 0 0 / 0.8);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 30px 70px -30px color-mix(in oklab, var(--primary) 32%, transparent);
+  --shadow-panel: 0 24px 70px -38px oklch(0 0 0 / 0.65);
 }
 
 .dark {
