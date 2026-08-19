@@ -121,7 +121,10 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-weight: 400;
+    letter-spacing: 0.005em;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1,
@@ -129,8 +132,18 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
   }
+
+  p {
+    line-height: 1.7;
+  }
+}
+
+@utility hairline {
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, transparent);
 }
 
 @utility text-gradient {
