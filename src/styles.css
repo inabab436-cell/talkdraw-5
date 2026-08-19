@@ -227,13 +227,35 @@
   100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
 }
 
-.rig-idle { animation: tk-breathe 4.5s ease-in-out infinite, tk-idle-sway 9s ease-in-out infinite; }
-.rig-eyes { animation: tk-blink 5.2s ease-in-out infinite; transform-origin: 50% 60%; }
-.rig-brows { animation: tk-brow 7s ease-in-out infinite; }
+.rig-idle {
+  animation: none;
+  transform: translateY(calc(var(--breath, 0) * -0.55%)) scale(calc(1 + var(--breath, 0) * 0.007))
+    rotate(calc(var(--micro-rot, 0) * 1deg))
+    translateX(calc(var(--micro-x, 0) * 0.35%));
+}
+.rig-eyes {
+  transform-origin: 50% 60%;
+  animation: none;
+  transform: translate(calc(var(--eye-x, 0) * .9%), calc(var(--eye-y, 0) * .55%))
+    scaleY(calc(1 - var(--blink, 0) * 0.92));
+}
+.rig-brows {
+  animation: none;
+  transform: translate(calc(var(--eye-x, 0) * .3%), calc(var(--eye-y, 0) * -.35% - var(--arousal, 0) * 0.25%))
+    rotate(calc(var(--eye-x, 0) * 1deg));
+}
 .rig-mouth-talk { animation: tk-mouth 0.32s ease-in-out infinite; transform-origin: 50% 40%; }
 .character-live-frame {
   --look-x: 0;
   --look-y: 0;
+  --eye-x: 0;
+  --eye-y: 0;
+  --blink: 0;
+  --breath: 0;
+  --micro-x: 0;
+  --micro-y: 0;
+  --micro-rot: 0;
+  --arousal: 0.3;
   --touch-x: 50%;
   --touch-y: 50%;
   cursor: grab;
@@ -241,16 +263,18 @@
 .character-live-frame.is-touching { cursor: grabbing; }
 .character-body {
   transform-origin: 50% 82%;
-  transition: transform 420ms cubic-bezier(.2,.8,.2,1), filter 300ms ease;
   will-change: transform;
-}
-.character-live-frame.is-touching .character-body {
   transform: perspective(900px)
     rotateY(calc(var(--look-x) * 4deg))
     rotateX(calc(var(--look-y) * -3deg))
-    translate(calc(var(--look-x) * 1.1%), calc(var(--look-y) * .65%))
+    translate(calc(var(--look-x) * 1.1% + var(--micro-x, 0) * .25%),
+              calc(var(--look-y) * .65% + var(--micro-y, 0) * .2%));
+}
+.character-live-frame.is-touching .character-body { transform: perspective(900px)
+    rotateY(calc(var(--look-x) * 5deg))
+    rotateX(calc(var(--look-y) * -3.6deg))
+    translate(calc(var(--look-x) * 1.3%), calc(var(--look-y) * .8%))
     scale(1.012);
-  transition-duration: 45ms;
 }
 .character-pose { will-change: transform; }
 .character-eyes,
@@ -258,20 +282,11 @@
 .character-mouth {
   transform-origin: var(--touch-x) var(--touch-y);
   will-change: transform, filter;
-  transition: transform 360ms cubic-bezier(.2,.8,.2,1), filter 180ms ease;
 }
-.character-live-frame.is-touching .character-eyes {
-  transform: translate(calc(var(--look-x) * .75%), calc(var(--look-y) * .42%)) scaleY(.96);
-  transition-duration: 35ms;
+.character-mouth {
+  transform: translate(calc(var(--eye-x, 0) * .3%), calc(var(--eye-y, 0) * .25%));
 }
-.character-live-frame.is-touching .character-brows {
-  transform: translate(calc(var(--look-x) * .28%), calc(var(--look-y) * -.3%)) rotate(calc(var(--look-x) * 1deg));
-  transition-duration: 55ms;
-}
-.character-live-frame.is-touching .character-mouth {
-  transform: translate(calc(var(--look-x) * .38%), calc(var(--look-y) * .3%)) scaleY(.98);
-  transition-duration: 65ms;
-}
+
 .anim-ripple { animation: tk-ripple 0.7s ease-out forwards; }
 .anim-lean-in { animation: tk-lean-in 0.9s ease-out; }
 .anim-recoil { animation: tk-recoil 0.7s ease-out; }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Volume2 } from "lucide-react";
 import { toast } from "sonner";
@@ -6,6 +6,7 @@ import { reactToTouch } from "@/lib/touch.functions";
 import { speakLine } from "@/lib/voice.functions";
 import { useCharacterTouch } from "@/lib/touch/useCharacterTouch";
 import { useTouchQueue } from "@/lib/touch/useTouchQueue";
+import { useCharacterLife } from "@/lib/character/useCharacterLife";
 import type {
   AiTouchDecision,
   CharacterState,
@@ -42,6 +43,10 @@ export function CharacterScene({ character }: { character: Character }) {
   const speak = useServerFn(speakLine);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const lifeRef = useRef<{
+    applyMood: (mood: string) => void;
+    impulse: (delta: Record<string, number>) => void;
+  } | null>(null);
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -135,6 +140,13 @@ export function CharacterScene({ character }: { character: Character }) {
       if (signal.aborted) return;
 
       play(decision.animation);
+      lifeRef.current?.applyMood(decision.mood);
+      lifeRef.current?.impulse({
+        valence: decision.affinityDelta * 0.6,
+        energy: decision.energyDelta * 0.5,
+        arousal: 0.12,
+        attention: 0.4,
+      });
       setState((prev) => ({
         mood: decision.mood,
         affinity: clamp(prev.affinity + decision.affinityDelta),
@@ -153,6 +165,12 @@ export function CharacterScene({ character }: { character: Character }) {
     (touch: TouchEventPayload) => {
       setRipple({ x: touch.x, y: touch.y, id: Date.now() });
       play(instantAnimation(touch));
+      // Instant local state change; the LLM decision arrives later.
+      lifeRef.current?.impulse({
+        arousal: touch.kind === "hold" || touch.kind === "long-press" ? 0.28 : 0.16,
+        attention: 0.6,
+        energy: 0.05,
+      });
       enqueue(touch);
     },
     [enqueue, play],
@@ -162,18 +180,8 @@ export function CharacterScene({ character }: { character: Character }) {
     onTouch: handleTouch,
   });
 
-
-  const liveRigStyle = useMemo(() => {
-    const point = livePoint ?? { x: 0.5, y: 0.5 };
-    const x = (point.x - 0.5) * 2;
-    const y = (point.y - 0.5) * 2;
-    return {
-      "--look-x": x.toFixed(3),
-      "--look-y": y.toFixed(3),
-      "--touch-x": `${point.x * 100}%`,
-      "--touch-y": `${point.y * 100}%`,
-    } as CSSProperties;
-  }, [livePoint]);
+  const life = useCharacterLife({ frameRef, livePoint, pressing, speaking });
+  lifeRef.current = life;
 
   const faceClip = "inset(6% 18% 66% 18%)"; // eyes + brows band
   const mouthClip = "inset(28% 30% 60% 30%)"; // mouth band
@@ -189,7 +197,7 @@ export function CharacterScene({ character }: { character: Character }) {
           className={`character-live-frame relative aspect-[3/4] w-full touch-none select-none ${
             pressing ? "is-touching" : ""
           }`}
-          style={{ ...liveRigStyle, WebkitTapHighlightColor: "transparent" }}
+          style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <div className="character-body absolute inset-0 rig-idle">
             <div
@@ -281,6 +289,15 @@ export function CharacterScene({ character }: { character: Character }) {
             <Bar label="Affinity" value={(state.affinity + 1) / 2} />
             <Bar label="Energy" value={(state.energy + 1) / 2} />
             <Meter label="Interactions" value={String(state.interactionCount)} />
+          </dl>
+        </div>
+        <div className="panel rounded-2xl p-5">
+          <h3 className="text-xs uppercase tracking-[0.25em] text-primary">Inner state</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            <Bar label="Valence" value={(life.core.valence + 1) / 2} />
+            <Bar label="Arousal" value={life.core.arousal} />
+            <Bar label="Dominance" value={life.core.dominance} />
+            <Bar label="Attention" value={life.core.attention} />
           </dl>
         </div>
       </aside>
