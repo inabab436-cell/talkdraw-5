@@ -43,6 +43,10 @@ export function CharacterScene({ character }: { character: Character }) {
   const speak = useServerFn(speakLine);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const lifeRef = useRef<{
+    applyMood: (mood: string) => void;
+    impulse: (delta: Record<string, number>) => void;
+  } | null>(null);
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
