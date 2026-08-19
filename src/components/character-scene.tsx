@@ -140,6 +140,13 @@ export function CharacterScene({ character }: { character: Character }) {
       if (signal.aborted) return;
 
       play(decision.animation);
+      lifeRef.current?.applyMood(decision.mood);
+      lifeRef.current?.impulse({
+        valence: decision.affinityDelta * 0.6,
+        energy: decision.energyDelta * 0.5,
+        arousal: 0.12,
+        attention: 0.4,
+      });
       setState((prev) => ({
         mood: decision.mood,
         affinity: clamp(prev.affinity + decision.affinityDelta),
@@ -158,6 +165,12 @@ export function CharacterScene({ character }: { character: Character }) {
     (touch: TouchEventPayload) => {
       setRipple({ x: touch.x, y: touch.y, id: Date.now() });
       play(instantAnimation(touch));
+      // Instant local state change; the LLM decision arrives later.
+      lifeRef.current?.impulse({
+        arousal: touch.kind === "hold" || touch.kind === "long-press" ? 0.28 : 0.16,
+        attention: 0.6,
+        energy: 0.05,
+      });
       enqueue(touch);
     },
     [enqueue, play],
@@ -167,18 +180,8 @@ export function CharacterScene({ character }: { character: Character }) {
     onTouch: handleTouch,
   });
 
-
-  const liveRigStyle = useMemo(() => {
-    const point = livePoint ?? { x: 0.5, y: 0.5 };
-    const x = (point.x - 0.5) * 2;
-    const y = (point.y - 0.5) * 2;
-    return {
-      "--look-x": x.toFixed(3),
-      "--look-y": y.toFixed(3),
-      "--touch-x": `${point.x * 100}%`,
-      "--touch-y": `${point.y * 100}%`,
-    } as CSSProperties;
-  }, [livePoint]);
+  const life = useCharacterLife({ frameRef, livePoint, pressing, speaking });
+  lifeRef.current = life;
 
   const faceClip = "inset(6% 18% 66% 18%)"; // eyes + brows band
   const mouthClip = "inset(28% 30% 60% 30%)"; // mouth band
@@ -194,7 +197,7 @@ export function CharacterScene({ character }: { character: Character }) {
           className={`character-live-frame relative aspect-[3/4] w-full touch-none select-none ${
             pressing ? "is-touching" : ""
           }`}
-          style={{ ...liveRigStyle, WebkitTapHighlightColor: "transparent" }}
+          style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <div className="character-body absolute inset-0 rig-idle">
             <div
