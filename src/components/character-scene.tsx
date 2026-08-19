@@ -291,6 +291,15 @@ export function CharacterScene({ character }: { character: Character }) {
             <Meter label="Interactions" value={String(state.interactionCount)} />
           </dl>
         </div>
+        <div className="panel rounded-2xl p-5">
+          <h3 className="text-xs uppercase tracking-[0.25em] text-primary">Inner state</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            <Bar label="Valence" value={(life.core.valence + 1) / 2} />
+            <Bar label="Arousal" value={life.core.arousal} />
+            <Bar label="Dominance" value={life.core.dominance} />
+            <Bar label="Attention" value={life.core.attention} />
+          </dl>
+        </div>
       </aside>
     </div>
   );
